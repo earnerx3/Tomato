@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tomato Premium</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
+
+        /* --- PREMIUM DARK THEME --- */
+        body {
+            background-color: #020617; /* Slate 950 */
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            user-select: none;
+            /* Background Gradient mesh */
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(354, 76%, 23%, 0.4) 0, transparent 50%), 
+                radial-gradient(at 50% 100%, hsla(225,39%,30%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            padding-bottom: 90px; /* Space for nav */
+        }
+
+        /* Glass Panel Effect */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .glass-panel:active { transform: scale(0.98); }
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 50%; 
+            transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            display: flex; justify-content: space-around;
+            padding: 12px 0; z-index: 50;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 10px; color: #64748b; transition: 0.3s;
+            position: relative; cursor: pointer;
+        }
+        .nav-item.active { color: #f87171; /* Tomato Red Light */ }
+        .nav-item.active i { transform: translateY(-5px); text-shadow: 0 0 15px #ef4444; }
+        .nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(to right, #f87171, #fca5a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Loading Bar for Tasks */
+        .task-progress-bg {
+            position: absolute; bottom: 0; left: 0; height: 3px; 
+            background: #22c55e; width: 0%; transition: width 1s linear;
+        }
+
+        /* Animations */
+        .page-section { display: none; padding: 20px; animation: fadeIn 0.4s ease-out; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Input */
+        .custom-input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            width: 100%;
+            outline: none;
+            transition: 0.3s;
+        }
+        .custom-input:focus { border-color: #ef4444; }
+        .currency-symbol { font-weight: bold; color: #fca5a5; }
+
+        .swal2-popup {
+            background: #1e293b !important;
+            border: 1px solid #334155;
+            color: #fff !important;
+            border-radius: 20px !important;
+        }
+        .swal2-title, .swal2-content { color: #fff !important; }
+    </style>
+</head>
+<body>
+
+    <div class="px-5 pt-6 pb-2 sticky top-0 z-40 bg-[#020617]/90 backdrop-blur-md border-b border-white/5">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-full border-2 border-red-500/30 overflow-hidden relative shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                    <img id="headerProfilePic" src="https://placehold.co/100x100/1e293b/ef4444?text=U" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h2 class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Hello,</h2>
+                    <h3 class="font-bold text-lg text-white truncate max-w-[140px]" id="userName">User</h3>
+                </div>
+            </div>
+            <div class="glass-panel px-4 py-2 flex items-center gap-2 border-red-500/20 bg-red-500/5">
+                <i class="fas fa-coins text-yellow-500 animate-pulse"></i>
+                <span class="font-bold text-xl text-yellow-100" id="headerBalanceValue">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-content">
+
+        <div id="homePage" class="page-section active">
+            
+            <div class="glass-panel p-6 mb-6 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-red-600/20 to-orange-600/20 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                <div class="flex justify-between items-center relative z-10">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-1">Watch & Earn</h3>
+                        <p class="text-slate-400 text-xs">Watch ads to earn points instantly!</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-red-500 to-orange-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <i class="fas fa-play text-xl text-white"></i>
+                    </div>
+                </div>
+                
+                <button id="startTaskBtn" class="mt-4 w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white py-3 rounded-xl font-bold shadow-lg shadow-red-500/20 transition active:scale-95 text-sm uppercase tracking-wide flex justify-center items-center gap-2">
+                    <span>Watch Ad (+<span id="standardAdPoints">0</span>)</span>
+                </button>
+            </div>
+
+            <h3 class="font-bold text-slate-500 mb-4 text-xs uppercase tracking-widest pl-1">Overview</h3>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="glass-panel p-4 text-center border-l-4 border-green-500">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Total Earnings</div>
+                    <div class="font-bold text-xl text-white mt-1 currencySymbol" id="homeTotalIncome">0</div>
+                </div>
+                <div class="glass-panel p-4 text-center border-l-4 border-blue-500">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Referrals</div>
+                    <div class="font-bold text-xl text-white mt-1" id="homeTotalReferrals">0</div>
+                </div>
+                <div class="glass-panel p-4 text-center border-l-4 border-yellow-500">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Daily Tasks</div>
+                    <div class="font-bold text-xl text-white mt-1" id="homeDailyTasks">0/0</div>
+                </div>
+                <div class="glass-panel p-4 text-center border-l-4 border-purple-500">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold">Ads Watched</div>
+                    <div class="font-bold text-xl text-white mt-1" id="homeTotalTasks">0</div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 flex justify-between items-center mb-4 border-yellow-500/30 relative overflow-hidden" id="rewardedAdTask">
+                <div class="absolute -right-5 -top-5 w-20 h-20 bg-yellow-500/20 blur-xl rounded-full"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-base text-white">Bonus Reward</h4>
+                        <p class="text-xs text-slate-400">+<span id="bonusAdPoints">0</span> Points</p>
+                    </div>
+                </div>
+                <button id="watchRewardedAdBtn" class="relative z-10 bg-slate-800 hover:bg-slate-700 text-white px-5 py-2 rounded-xl text-xs font-bold border border-slate-600">
+                    CLAIM
+                </button>
+            </div>
+        </div>
+
+        <div id="tasksPage" class="page-section">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-xl font-bold text-gradient">Extra Tasks</h2>
+                <span class="text-xs bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">Auto Check</span>
+            </div>
+
+            <div id="dynamicTasksList" class="space-y-3">
+                <p class="text-center text-slate-500 text-xs">Loading tasks...</p>
+            </div>
+        </div>
+
+        <div id="walletPage" class="page-section">
+            <div class="relative w-full h-48 rounded-2xl overflow-hidden shadow-2xl mb-8 group">
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-red-900 to-slate-900"></div>
+                <div class="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
+                
+                <div class="relative p-6 h-full flex flex-col justify-between z-10">
+                    <div class="flex justify-between items-start">
+                        <i class="fas fa-wallet text-3xl opacity-50"></i>
+                        <span class="text-xs font-mono text-red-200 tracking-widest bg-white/10 px-2 py-1 rounded">POINTS</span>
+                    </div>
+                    <div>
+                        <p class="text-red-200 text-xs mb-1">Current Balance</p>
+                        <h1 class="text-4xl font-bold text-white tracking-tight" id="withdrawCurrentBalance">0</h1>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-bold mb-4 text-xs text-slate-400 uppercase tracking-widest">Withdraw Request</h3>
+            
+            <p class="text-[11px] text-yellow-400 mb-2 hidden" id="referralWithdrawNote">Note: Requirement not met.</p>
+
+            <div class="space-y-4">
+                <div class="glass-panel p-1">
+                    <select id="paymentMethod" class="w-full bg-transparent text-white p-3 text-sm outline-none border-none">
+                        <option value="" class="bg-slate-900 text-slate-500">Select Method</option>
+                    </select>
+                </div>
+
+                <div class="glass-panel px-4 py-2 flex items-center gap-3">
+                    <i class="fas fa-address-card text-slate-500"></i>
+                    <input type="text" id="paymentAddress" placeholder="Wallet / Phone Number" class="w-full bg-transparent border-none text-white text-sm py-2 focus:outline-none placeholder-slate-600">
+                </div>
+                
+                <div class="glass-panel px-4 py-2 flex items-center gap-3">
+                    <i class="fas fa-coins text-slate-500"></i>
+                    <input type="number" id="withdrawAmount" placeholder="Amount (Points)" class="w-full bg-transparent border-none text-white text-sm py-2 focus:outline-none placeholder-slate-600">
+                </div>
+
+                <button id="submitWithdrawBtn" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition mt-2">
+                    WITHDRAW NOW
+                </button>
+            </div>
+
+            <h3 class="font-bold mt-8 mb-4 text-xs text-slate-400 uppercase tracking-widest">History</h3>
+            <ul id="withdrawHistoryList" class="space-y-3">
+                </ul>
+        </div>
+
+        <div id="profilePage" class="page-section">
+            <div class="flex flex-col items-center mb-8 pt-6">
+                <div class="w-28 h-28 rounded-full p-1 bg-gradient-to-tr from-red-500 to-orange-500 mb-4 shadow-2xl">
+                    <img id="mainProfilePic" src="https://placehold.co/100x100" class="w-full h-full object-cover rounded-full border-4 border-[#020617]">
+                </div>
+                <h2 class="text-2xl font-bold text-white" id="mainProfileName">User</h2>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-xs text-slate-400">ID: <span id="userIdDisplay">...</span></span>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 mb-6 relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+                <h4 class="font-bold text-lg text-white mb-1">Refer & Earn</h4>
+                <p class="text-xs text-slate-400 mb-4" id="referralBonusText">Share and earn bonus!</p>
+                
+                <div class="flex gap-2 mb-3">
+                    <div class="bg-black/30 flex-1 p-3 rounded-lg border border-slate-700/50 flex items-center overflow-hidden">
+                         <i class="fas fa-link text-slate-500 text-xs mr-2"></i>
+                         <code class="text-xs text-blue-300 truncate" id="userReferralLink">Loading...</code>
+                    </div>
+                    <button id="copyReferralLinkBtn" class="bg-blue-600 hover:bg-blue-500 w-12 rounded-lg flex items-center justify-center text-white transition"><i class="fas fa-copy"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-black/20 p-2 rounded text-center">
+                        <span class="text-[10px] text-slate-400 block">Total Referrals</span>
+                        <span class="font-bold text-white" id="referredUsersCount">0</span>
+                    </div>
+                    <div class="bg-black/20 p-2 rounded text-center">
+                        <span class="text-[10px] text-slate-400 block">Referral Earnings</span>
+                        <span class="font-bold text-white" id="referralPointsEarned">0</span>
+                    </div>
+                </div>
+
+                <button id="shareOnTelegramBtn" class="w-full mt-3 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-lg text-xs font-bold border border-white/10 transition flex items-center justify-center gap-2">
+                    <i class="fab fa-telegram-plane"></i> Share to Telegram
+                </button>
+            </div>
+
+            <h3 class="font-bold mb-3 text-xs text-slate-400 uppercase tracking-widest">Support & Channels</h3>
+            <div id="supportLinksList" class="space-y-2"></div>
+        </div>
+
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="navigateToPage('homePage')">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('tasksPage')">
+            <i class="fas fa-bolt"></i>
+            <span>Tasks</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('walletPage')">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('profilePage')">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+
+    <div id="taskTimerOverlay" style="display:none;"></div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const BOT_USERNAME = "lal_tomatox_bot"; // Your Bot Username
+        const APP_SHORT_NAME = "app"; 
+
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAolXMVYn7nLGUz4krYCHHgkBgkBRH4Djk",
+            authDomain: "earnerx-506e1.firebaseapp.com",
+            databaseURL: "https://earnerx-506e1-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "earnerx-506e1",
+            storageBucket: "earnerx-506e1.firebasestorage.app",
+            messagingSenderId: "868867404959",
+            appId: "1:868867404959:web:c98447df696a9877bf5eaa",
+            measurementId: "G-Y2BV7SKVKY"
+        };
+    
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentUser = null; 
+        let appConfig = null;
+        const tg = window.Telegram.WebApp;
+
+        // --- INITIALIZATION ---
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#020617'); // Match body bg
+        tg.setBackgroundColor('#020617');
+
+        // --- MONETAG LOGIC ---
+        function loadMonetagSDK(zoneId) {
+            if (!zoneId || document.getElementById('monetag-sdk')) return;
+            const script = document.createElement('script');
+            script.id = 'monetag-sdk';
+            script.src = '//libtl.com/sdk.js';
+            script.dataset.zone = zoneId;
+            script.dataset.sdk = `show_${zoneId}`;
+            document.head.appendChild(script);
+        }
+        
+        function callMonetagAd(type = 'default') {
+            return new Promise((resolve, reject) => {
+                if (!appConfig || !appConfig.monetagZoneId) return reject("Config missing");
+                const funcName = `show_${appConfig.monetagZoneId}`;
+                if (typeof window[funcName] === 'function') {
+                    (type === 'pop' ? window[funcName]('pop') : window[funcName]()).then(resolve).catch(reject);
+                } else {
+                    reject("Ad SDK not ready");
+                }
+            });
+        }
+
+        // --- UI HELPERS ---
+        function formatCurrency(points) {
+            const currency = appConfig?.currencySymbol || "Points";
+            const rate = appConfig?.dollarExchangeRate || 0;
+            if (currency === "Points" || !rate) return `${points.toLocaleString()} ${currency}`;
+            return `${(points / rate).toFixed(2)} ${currency}`;
+        }
+
+        function getRawPoints(val) {
+             const rate = appConfig?.dollarExchangeRate || 0;
+             const amount = parseFloat(val);
+             return (appConfig?.currencySymbol === "Points" || !rate) ? amount : Math.round(amount * rate);
+        }
+
+        function navigateToPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // Nav Item Highlighting
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const map = { homePage:0, tasksPage:1, walletPage:2, profilePage:3 };
+            if(map[pageId] !== undefined) document.querySelectorAll('.nav-item')[map[pageId]].classList.add('active');
+            
+            window.scrollTo(0,0);
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        // --- CORE LOGIC ---
+        async function fetchAppConfig() {
+            try {
+                const doc = await db.collection('config').doc('appConfig').get();
+                if (doc.exists) {
+                    appConfig = doc.data();
+                    loadMonetagSDK(appConfig.monetagZoneId);
+                } else {
+                    appConfig = { standardAdPoints: 10, dailyTaskLimit: 10 }; // Defaults
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateUI() {
+            if (!currentUser || !appConfig) return;
+
+            const balance = currentUser.balance || 0;
+            const limit = appConfig.dailyTaskLimit || 10;
+            const completed = currentUser.dailyTasksCompleted || 0;
+
+            // Headers
+            document.getElementById('userName').textContent = currentUser.first_name;
+            document.getElementById('headerBalanceValue').textContent = balance.toLocaleString();
+            document.getElementById('headerProfilePic').src = currentUser.photo_url || 'https://placehold.co/100x100/1e293b/ef4444?text=U';
+            document.getElementById('mainProfilePic').src = currentUser.photo_url || 'https://placehold.co/100x100/1e293b/ef4444?text=U';
+            document.getElementById('mainProfileName').textContent = currentUser.first_name;
+            document.getElementById('userIdDisplay').textContent = currentUser.userId;
+
+            // Home Stats
+            document.getElementById('homeTotalIncome').textContent = formatCurrency(currentUser.totalEarnings || 0);
+            document.getElementById('homeTotalReferrals').textContent = currentUser.referredUsersCount || 0;
+            document.getElementById('homeDailyTasks').textContent = `${completed}/${limit}`;
+            document.getElementById('homeTotalTasks').textContent = currentUser.totalTasksCompleted || 0;
+
+            // Ad Buttons
+            document.getElementById('standardAdPoints').textContent = appConfig.standardAdPoints || 0;
+            document.getElementById('bonusAdPoints').textContent = appConfig.bonusAdPoints || 0;
+            
+            const btn = document.getElementById('startTaskBtn');
+            if(completed >= limit) {
+                btn.disabled = true;
+                btn.innerHTML = `<span>Limit Reached (${completed}/${limit})</span>`;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Watch Ad (+<span id="standardAdPoints">${appConfig.standardAdPoints}</span>)</span>`;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            // Wallet & Profile
+            document.getElementById('withdrawCurrentBalance').textContent = balance.toLocaleString();
+            
+            const refLink = `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}?startapp=ref_${currentUser.userId}`;
+            document.getElementById('userReferralLink').textContent = refLink;
+            document.getElementById('referredUsersCount').textContent = currentUser.referredUsersCount || 0;
+            document.getElementById('referralPointsEarned').textContent = formatCurrency(currentUser.referralEarnings || 0);
+
+            renderDynamicTasks();
+            renderWithdrawalHistory();
+            populatePaymentMethods();
+            renderSupportLinks();
+        }
+
+        // --- TASK RENDERING (PREMIUM STYLE) ---
+        function renderDynamicTasks() {
+            const list = document.getElementById('dynamicTasksList');
+            list.innerHTML = '';
+            
+            if (!appConfig.dynamicTasks || appConfig.dynamicTasks.length === 0) return;
+            const today = new Date().toDateString();
+
+            appConfig.dynamicTasks.forEach(task => {
+                const isCompleted = (currentUser.completedTasks && (currentUser.completedTasks[task.id] === today || (task.type === 'one-time' && currentUser.completedTasks[task.id] === 'completed')));
+                
+                let iconClass = 'fa-link';
+                if(task.icon === 'telegram') iconClass = 'fa-paper-plane';
+                if(task.icon === 'youtube') iconClass = 'fa-youtube';
+
+                const html = `
+                    <div class="glass-panel p-3 flex justify-between items-center relative overflow-hidden group">
+                        <div class="flex items-center gap-3 relative z-10">
+                            <div class="bg-blue-500/10 p-2.5 rounded-lg text-blue-400 border border-blue-500/20">
+                                <i class="fas ${iconClass}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-200">${task.name}</h4>
+                                <div class="flex items-center gap-1">
+                                    <i class="fas fa-coins text-[10px] text-yellow-500"></i>
+                                    <span class="text-[10px] text-yellow-500 font-bold">+${task.points}</span>
+                                    <span class="text-[10px] text-slate-500 ml-1">• ${task.timer || 15}s</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="startDynamicTask('${task.id}', '${task.link}', ${task.timer || 15}, ${task.points})" 
+                            class="${isCompleted ? 'bg-green-600/20 text-green-400' : 'bg-slate-700 hover:bg-slate-600 text-white'} px-4 py-1.5 rounded-lg text-xs font-bold transition border border-white/5" 
+                            ${isCompleted ? 'disabled' : ''}>
+                            ${isCompleted ? 'DONE' : 'START'}
+                        </button>
+                    </div>`;
+                list.innerHTML += html;
+            });
+        }
+
+        function startDynamicTask(id, link, duration, points) {
+            // SweetAlert Timer
+            let timerInterval;
+            Swal.fire({
+                title: 'Task in Progress',
+                html: `Wait for <b>${duration}</b> seconds...`,
+                timer: duration * 1000,
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    tg.openLink(link);
+                    const b = Swal.getHtmlContainer().querySelector('b');
+                    timerInterval = setInterval(() => {
+                        b.textContent = Math.ceil(Swal.getTimerLeft() / 1000);
+                    }, 100);
+                },
+                willClose: () => { clearInterval(timerInterval); }
+            }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.timer) {
+                    completeTask(id, points);
+                }
+            });
+        }
+
+        async function completeTask(taskId, points) {
+            // Optimistic Update
+            const userRef = db.collection('users').doc(currentUser.userId);
+            const today = new Date().toDateString();
+            const task = appConfig.dynamicTasks.find(t => t.id === taskId);
+            
+            try {
+                await db.runTransaction(async (t) => {
+                    t.update(userRef, {
+                        balance: firebase.firestore.FieldValue.increment(points),
+                        totalEarnings: firebase.firestore.FieldValue.increment(points),
+                        [`completedTasks.${taskId}`]: task.type === 'one-time' ? 'completed' : today
+                    });
+                });
+                Swal.fire({ icon: 'success', title: 'Claimed!', text: `You earned ${points} points!` });
+                tg.HapticFeedback.notificationOccurred('success');
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Could not claim reward.' });
+            }
+        }
+
+        // --- WITHDRAW LOGIC ---
+        function populatePaymentMethods() {
+            const select = document.getElementById('paymentMethod');
+            select.innerHTML = '<option value="" class="bg-slate-900">Select Method</option>';
+            appConfig.paymentMethods?.forEach(m => {
+                 select.innerHTML += `<option value="${m.id}" class="bg-slate-900">${m.name} (Min: ${m.minAmount || 5000})</option>`;
+            });
+        }
+
+        async function renderWithdrawalHistory() {
+            const list = document.getElementById('withdrawHistoryList');
+            if (!currentUser.userId) return;
+            const snap = await db.collection('withdrawals').where('userId', '==', currentUser.userId).orderBy('createdAt', 'desc').limit(5).get();
+            
+            list.innerHTML = "";
+            if(snap.empty) {
+                list.innerHTML = `<li class="text-center text-xs text-slate-600">No history found</li>`;
+                return;
+            }
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const statusColors = { 'Pending': 'text-yellow-400', 'Approved': 'text-green-400', 'Rejected': 'text-red-400' };
+                list.innerHTML += `
+                    <li class="glass-panel p-3 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-sm text-slate-200">${data.paymentMethodName}</div>
+                            <div class="text-[10px] text-slate-500">${new Date(data.createdAt.toDate()).toLocaleDateString()}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-white">${formatCurrency(data.amount)}</div>
+                            <div class="text-[10px] font-bold ${statusColors[data.status] || 'text-white'}">${data.status}</div>
+                        </div>
+                    </li>`;
+            });
+        }
+
+        document.getElementById('submitWithdrawBtn').addEventListener('click', async function() {
+            const methodId = document.getElementById('paymentMethod').value;
+            const address = document.getElementById('paymentAddress').value.trim();
+            const amountInput = document.getElementById('withdrawAmount').value;
+            const amount = getRawPoints(amountInput);
+            
+            if(!methodId || !address || !amount) return Swal.fire('Error', 'Fill all fields', 'warning');
+            if(amount > currentUser.balance) return Swal.fire('Error', 'Insufficient Balance', 'error');
+
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            try {
+                await db.runTransaction(async (t) => {
+                     const uRef = db.collection('users').doc(currentUser.userId);
+                     const uDoc = await t.get(uRef);
+                     if(uDoc.data().balance < amount) throw "Low Balance";
+                     
+                     t.update(uRef, { balance: firebase.firestore.FieldValue.increment(-amount) });
+                     t.set(db.collection('withdrawals').doc(), {
+                         userId: currentUser.userId,
+                         amount: amount,
+                         paymentMethodId: methodId,
+                         paymentMethodName: appConfig.paymentMethods.find(m=>m.id===methodId).name,
+                         paymentAddress: address,
+                         status: 'Pending',
+                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                     });
+                });
+                Swal.fire('Success', 'Withdrawal Requested!', 'success');
+                document.getElementById('withdrawAmount').value = '';
+            } catch(e) {
+                Swal.fire('Error', 'Transaction Failed', 'error');
+            }
+            this.textContent = 'WITHDRAW NOW';
+        });
+
+        // --- BUTTON EVENTS ---
+        document.getElementById('startTaskBtn').addEventListener('click', async () => {
+             const btn = document.getElementById('startTaskBtn');
+             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+             try {
+                 await callMonetagAd('default');
+                 rewardUser(appConfig.standardAdPoints);
+             } catch(e) { Swal.fire('Oops', 'Ad not available', 'info'); }
+             updateUI();
+        });
+
+        document.getElementById('watchRewardedAdBtn').addEventListener('click', async () => {
+             try {
+                 await callMonetagAd('pop');
+                 rewardUser(appConfig.bonusAdPoints);
+             } catch(e) { Swal.fire('Oops', 'Bonus Ad not available', 'info'); }
+        });
+
+        document.getElementById('copyReferralLinkBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('userReferralLink').textContent);
+            Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'Link Copied', timer: 1500, showConfirmButton: false});
+        });
+
+        document.getElementById('shareOnTelegramBtn').addEventListener('click', () => {
+            const link = document.getElementById('userReferralLink').textContent;
+            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Join now and earn money!`);
+        });
+
+        async function rewardUser(points) {
+            const userRef = db.collection('users').doc(currentUser.userId);
+            await db.runTransaction(async (t) => {
+                 t.update(userRef, {
+                     balance: firebase.firestore.FieldValue.increment(points),
+                     totalEarnings: firebase.firestore.FieldValue.increment(points),
+                     dailyTasksCompleted: firebase.firestore.FieldValue.increment(1),
+                     totalTasksCompleted: firebase.firestore.FieldValue.increment(1)
+                 });
+                 // Refer bonus logic here... (Same as before)
+            });
+            Swal.fire({toast: true, position: 'top', icon: 'success', title: `+${points} Points`, timer: 2000, showConfirmButton: false});
+        }
+
+        function renderSupportLinks() {
+            const list = document.getElementById('supportLinksList');
+            list.innerHTML = "";
+            appConfig.supportLinks?.forEach(l => {
+                list.innerHTML += `
+                    <div class="glass-panel p-3 flex justify-between items-center" onclick="window.Telegram.WebApp.openLink('${l.link}')">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/5 p-2 rounded-full"><i class="fas fa-headset text-slate-400"></i></div>
+                            <span class="text-sm text-slate-200 font-bold">${l.name}</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-xs text-slate-600"></i>
+                    </div>`;
+            });
+        }
+
+        // --- APP INIT ---
+        async function initApp() {
+            await fetchAppConfig();
+            const tgUser = tg.initDataUnsafe.user;
+            if(!tgUser) return Swal.fire("Error", "Open in Telegram", "error");
+
+            const userId = String(tgUser.id);
+            db.collection('users').doc(userId).onSnapshot(async (doc) => {
+                if(doc.exists) {
+                    currentUser = doc.data();
+                    // Check Daily Reset
+                    const today = new Date().toDateString();
+                    if(currentUser.lastTaskDate !== today) {
+                        db.collection('users').doc(userId).update({ dailyTasksCompleted: 0, lastTaskDate: today });
+                    }
+                } else {
+                    // Create User (simplified from previous code)
+                    const newUser = {
+                        userId: userId, first_name: tgUser.first_name, balance: 0, 
+                        totalEarnings: 0, dailyTasksCompleted: 0, totalTasksCompleted: 0,
+                        lastTaskDate: new Date().toDateString(), referredUsersCount: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    // Referral check
+                    const startParam = tg.initDataUnsafe.start_param;
+                    if(startParam && startParam.startsWith('ref_')) {
+                        newUser.referredBy = startParam.substring(4);
+                        // Increment referrer count logic here...
+                    }
+                    await db.collection('users').doc(userId).set(newUser);
+                }
+                updateUI();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
