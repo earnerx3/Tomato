@@ -28,12 +28,11 @@
             -webkit-tap-highlight-color: transparent;
             min-height: 100vh;
             user-select: none;
-            /* Background Gradient mesh */
             background-image: 
                 radial-gradient(at 0% 0%, hsla(354, 76%, 23%, 0.4) 0, transparent 50%), 
                 radial-gradient(at 50% 100%, hsla(225,39%,30%,1) 0, transparent 50%);
             background-attachment: fixed;
-            padding-bottom: 90px; /* Space for nav */
+            padding-bottom: 90px;
         }
 
         /* Glass Panel Effect */
@@ -66,42 +65,21 @@
             font-size: 10px; color: #64748b; transition: 0.3s;
             position: relative; cursor: pointer;
         }
-        .nav-item.active { color: #f87171; /* Tomato Red Light */ }
+        .nav-item.active { color: #f87171; }
         .nav-item.active i { transform: translateY(-5px); text-shadow: 0 0 15px #ef4444; }
         .nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
 
-        /* Gradient Text */
+        /* Helpers */
         .text-gradient {
             background: linear-gradient(to right, #f87171, #fca5a5);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
-        /* Loading Bar for Tasks */
-        .task-progress-bg {
-            position: absolute; bottom: 0; left: 0; height: 3px; 
-            background: #22c55e; width: 0%; transition: width 1s linear;
-        }
-
-        /* Animations */
         .page-section { display: none; padding: 20px; animation: fadeIn 0.4s ease-out; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Custom Input */
-        .custom-input {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            width: 100%;
-            outline: none;
-            transition: 0.3s;
-        }
-        .custom-input:focus { border-color: #ef4444; }
-        .currency-symbol { font-weight: bold; color: #fca5a5; }
-
+        
+        /* SweetAlert Customization */
         .swal2-popup {
             background: #1e293b !important;
             border: 1px solid #334155;
@@ -194,7 +172,6 @@
                 <h2 class="text-xl font-bold text-gradient">Extra Tasks</h2>
                 <span class="text-xs bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">Auto Check</span>
             </div>
-
             <div id="dynamicTasksList" class="space-y-3">
                 <p class="text-center text-slate-500 text-xs">Loading tasks...</p>
             </div>
@@ -203,8 +180,6 @@
         <div id="walletPage" class="page-section">
             <div class="relative w-full h-48 rounded-2xl overflow-hidden shadow-2xl mb-8 group">
                 <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-red-900 to-slate-900"></div>
-                <div class="absolute top-0 right-0 w-40 h-40 bg-red-500/10 rounded-full blur-3xl transform translate-x-10 -translate-y-10"></div>
-                
                 <div class="relative p-6 h-full flex flex-col justify-between z-10">
                     <div class="flex justify-between items-start">
                         <i class="fas fa-wallet text-3xl opacity-50"></i>
@@ -219,33 +194,27 @@
 
             <h3 class="font-bold mb-4 text-xs text-slate-400 uppercase tracking-widest">Withdraw Request</h3>
             
-            <p class="text-[11px] text-yellow-400 mb-2 hidden" id="referralWithdrawNote">Note: Requirement not met.</p>
-
             <div class="space-y-4">
                 <div class="glass-panel p-1">
                     <select id="paymentMethod" class="w-full bg-transparent text-white p-3 text-sm outline-none border-none">
                         <option value="" class="bg-slate-900 text-slate-500">Select Method</option>
                     </select>
                 </div>
-
                 <div class="glass-panel px-4 py-2 flex items-center gap-3">
                     <i class="fas fa-address-card text-slate-500"></i>
                     <input type="text" id="paymentAddress" placeholder="Wallet / Phone Number" class="w-full bg-transparent border-none text-white text-sm py-2 focus:outline-none placeholder-slate-600">
                 </div>
-                
                 <div class="glass-panel px-4 py-2 flex items-center gap-3">
                     <i class="fas fa-coins text-slate-500"></i>
                     <input type="number" id="withdrawAmount" placeholder="Amount (Points)" class="w-full bg-transparent border-none text-white text-sm py-2 focus:outline-none placeholder-slate-600">
                 </div>
-
                 <button id="submitWithdrawBtn" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition mt-2">
                     WITHDRAW NOW
                 </button>
             </div>
 
             <h3 class="font-bold mt-8 mb-4 text-xs text-slate-400 uppercase tracking-widest">History</h3>
-            <ul id="withdrawHistoryList" class="space-y-3">
-                </ul>
+            <ul id="withdrawHistoryList" class="space-y-3"></ul>
         </div>
 
         <div id="profilePage" class="page-section">
@@ -263,8 +232,6 @@
             <div class="glass-panel p-6 mb-6 relative overflow-hidden">
                 <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
                 <h4 class="font-bold text-lg text-white mb-1">Refer & Earn</h4>
-                <p class="text-xs text-slate-400 mb-4" id="referralBonusText">Share and earn bonus!</p>
-                
                 <div class="flex gap-2 mb-3">
                     <div class="bg-black/30 flex-1 p-3 rounded-lg border border-slate-700/50 flex items-center overflow-hidden">
                          <i class="fas fa-link text-slate-500 text-xs mr-2"></i>
@@ -272,7 +239,6 @@
                     </div>
                     <button id="copyReferralLinkBtn" class="bg-blue-600 hover:bg-blue-500 w-12 rounded-lg flex items-center justify-center text-white transition"><i class="fas fa-copy"></i></button>
                 </div>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div class="bg-black/20 p-2 rounded text-center">
                         <span class="text-[10px] text-slate-400 block">Total Referrals</span>
@@ -283,7 +249,6 @@
                         <span class="font-bold text-white" id="referralPointsEarned">0</span>
                     </div>
                 </div>
-
                 <button id="shareOnTelegramBtn" class="w-full mt-3 bg-white/10 hover:bg-white/20 text-white py-2.5 rounded-lg text-xs font-bold border border-white/10 transition flex items-center justify-center gap-2">
                     <i class="fab fa-telegram-plane"></i> Share to Telegram
                 </button>
@@ -314,14 +279,12 @@
         </div>
     </div>
 
-    <div id="taskTimerOverlay" style="display:none;"></div>
-
     <script>
         // --- CONFIGURATION ---
-        const BOT_USERNAME = "lal_tomatox_bot"; // Your Bot Username
+        const BOT_USERNAME = "lal_tomatox_bot"; 
         const APP_SHORT_NAME = "app"; 
 
-        // --- FIREBASE CONFIG ---
+        // --- FIREBASE CONFIG (নিচের তথ্যগুলো আপনার Firebase Console থেকে চেক করে বসান) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAolXMVYn7nLGUz4krYCHHgkBgkBRH4Djk",
             authDomain: "earnerx-506e1.firebaseapp.com",
@@ -343,28 +306,52 @@
         // --- INITIALIZATION ---
         tg.ready();
         tg.expand();
-        tg.setHeaderColor('#020617'); // Match body bg
+        tg.setHeaderColor('#020617');
         tg.setBackgroundColor('#020617');
 
-        // --- MONETAG LOGIC ---
+        // --- MONETAG LOGIC (CORRECTED) ---
         function loadMonetagSDK(zoneId) {
-            if (!zoneId || document.getElementById('monetag-sdk')) return;
+            if (!zoneId) {
+                console.log("Monetag Zone ID not found in config");
+                return;
+            }
+            // Check if already loaded
+            const existing = document.getElementById('monetag-sdk');
+            if(existing) {
+                if(existing.dataset.zone !== String(zoneId)) existing.remove();
+                else return;
+            }
+
             const script = document.createElement('script');
             script.id = 'monetag-sdk';
-            script.src = '//libtl.com/sdk.js';
+            // HTTPS যুক্ত করা হয়েছে
+            script.src = 'https://libtl.com/sdk.js'; 
             script.dataset.zone = zoneId;
             script.dataset.sdk = `show_${zoneId}`;
+            
+            script.onload = () => console.log(`Ads Loaded: ${zoneId}`);
             document.head.appendChild(script);
         }
         
         function callMonetagAd(type = 'default') {
             return new Promise((resolve, reject) => {
                 if (!appConfig || !appConfig.monetagZoneId) return reject("Config missing");
-                const funcName = `show_${appConfig.monetagZoneId}`;
+                
+                const zoneId = appConfig.monetagZoneId;
+                const funcName = `show_${zoneId}`;
+                
+                // ফাংশন লোড হয়েছে কিনা চেক করা হচ্ছে
                 if (typeof window[funcName] === 'function') {
-                    (type === 'pop' ? window[funcName]('pop') : window[funcName]()).then(resolve).catch(reject);
+                    // 'pop' প্যারামিটার ব্যবহার করা হয়েছে যেমন আপনি চেয়েছিলেন
+                    window[funcName]('pop').then(() => {
+                        resolve(true);
+                    }).catch(e => {
+                        reject("Ad closed or failed");
+                    });
                 } else {
-                    reject("Ad SDK not ready");
+                    // যদি লোড না হয়ে থাকে, তবে আবার চেষ্টা করবে
+                    loadMonetagSDK(zoneId);
+                    reject("Ad is loading... Please wait 3 seconds and try again.");
                 }
             });
         }
@@ -387,7 +374,6 @@
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             
-            // Nav Item Highlighting
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             const map = { homePage:0, tasksPage:1, walletPage:2, profilePage:3 };
             if(map[pageId] !== undefined) document.querySelectorAll('.nav-item')[map[pageId]].classList.add('active');
@@ -402,10 +388,14 @@
                 const doc = await db.collection('config').doc('appConfig').get();
                 if (doc.exists) {
                     appConfig = doc.data();
-                    loadMonetagSDK(appConfig.monetagZoneId);
+                    // Load Ads immediately when config is fetched
+                    if(appConfig.monetagZoneId) {
+                        loadMonetagSDK(appConfig.monetagZoneId);
+                    }
                 } else {
-                    appConfig = { standardAdPoints: 10, dailyTaskLimit: 10 }; // Defaults
+                    appConfig = { standardAdPoints: 10, dailyTaskLimit: 10 };
                 }
+                updateUI();
             } catch (e) { console.error(e); }
         }
 
@@ -416,7 +406,7 @@
             const limit = appConfig.dailyTaskLimit || 10;
             const completed = currentUser.dailyTasksCompleted || 0;
 
-            // Headers
+            // Update DOM Elements
             document.getElementById('userName').textContent = currentUser.first_name;
             document.getElementById('headerBalanceValue').textContent = balance.toLocaleString();
             document.getElementById('headerProfilePic').src = currentUser.photo_url || 'https://placehold.co/100x100/1e293b/ef4444?text=U';
@@ -424,13 +414,11 @@
             document.getElementById('mainProfileName').textContent = currentUser.first_name;
             document.getElementById('userIdDisplay').textContent = currentUser.userId;
 
-            // Home Stats
             document.getElementById('homeTotalIncome').textContent = formatCurrency(currentUser.totalEarnings || 0);
             document.getElementById('homeTotalReferrals').textContent = currentUser.referredUsersCount || 0;
             document.getElementById('homeDailyTasks').textContent = `${completed}/${limit}`;
             document.getElementById('homeTotalTasks').textContent = currentUser.totalTasksCompleted || 0;
 
-            // Ad Buttons
             document.getElementById('standardAdPoints').textContent = appConfig.standardAdPoints || 0;
             document.getElementById('bonusAdPoints').textContent = appConfig.bonusAdPoints || 0;
             
@@ -445,7 +433,6 @@
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
 
-            // Wallet & Profile
             document.getElementById('withdrawCurrentBalance').textContent = balance.toLocaleString();
             
             const refLink = `https://t.me/${BOT_USERNAME}/${APP_SHORT_NAME}?startapp=ref_${currentUser.userId}`;
@@ -459,7 +446,7 @@
             renderSupportLinks();
         }
 
-        // --- TASK RENDERING (PREMIUM STYLE) ---
+        // --- TASK RENDERING ---
         function renderDynamicTasks() {
             const list = document.getElementById('dynamicTasksList');
             list.innerHTML = '';
@@ -500,7 +487,6 @@
         }
 
         function startDynamicTask(id, link, duration, points) {
-            // SweetAlert Timer
             let timerInterval;
             Swal.fire({
                 title: 'Task in Progress',
@@ -525,7 +511,6 @@
         }
 
         async function completeTask(taskId, points) {
-            // Optimistic Update
             const userRef = db.collection('users').doc(currentUser.userId);
             const today = new Date().toDateString();
             const task = appConfig.dynamicTasks.find(t => t.id === taskId);
@@ -622,11 +607,23 @@
         // --- BUTTON EVENTS ---
         document.getElementById('startTaskBtn').addEventListener('click', async () => {
              const btn = document.getElementById('startTaskBtn');
+             const originalText = btn.innerHTML;
              btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+             
              try {
+                 // Monetag Call (Fixed)
                  await callMonetagAd('default');
                  rewardUser(appConfig.standardAdPoints);
-             } catch(e) { Swal.fire('Oops', 'Ad not available', 'info'); }
+             } catch(e) { 
+                 Swal.fire({
+                     icon: 'info',
+                     title: 'Ad Not Ready',
+                     text: e.toString(),
+                     confirmButtonColor: '#3085d6',
+                     confirmButtonText: 'Try Again'
+                 });
+             }
+             btn.innerHTML = originalText;
              updateUI();
         });
 
@@ -656,7 +653,6 @@
                      dailyTasksCompleted: firebase.firestore.FieldValue.increment(1),
                      totalTasksCompleted: firebase.firestore.FieldValue.increment(1)
                  });
-                 // Refer bonus logic here... (Same as before)
             });
             Swal.fire({toast: true, position: 'top', icon: 'success', title: `+${points} Points`, timer: 2000, showConfirmButton: false});
         }
@@ -680,30 +676,27 @@
         async function initApp() {
             await fetchAppConfig();
             const tgUser = tg.initDataUnsafe.user;
-            if(!tgUser) return Swal.fire("Error", "Open in Telegram", "error");
+            if(!tgUser) return Swal.fire("Error", "Please open this app in Telegram", "error");
 
             const userId = String(tgUser.id);
             db.collection('users').doc(userId).onSnapshot(async (doc) => {
                 if(doc.exists) {
                     currentUser = doc.data();
-                    // Check Daily Reset
                     const today = new Date().toDateString();
                     if(currentUser.lastTaskDate !== today) {
                         db.collection('users').doc(userId).update({ dailyTasksCompleted: 0, lastTaskDate: today });
                     }
                 } else {
-                    // Create User (simplified from previous code)
                     const newUser = {
                         userId: userId, first_name: tgUser.first_name, balance: 0, 
                         totalEarnings: 0, dailyTasksCompleted: 0, totalTasksCompleted: 0,
                         lastTaskDate: new Date().toDateString(), referredUsersCount: 0,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        photo_url: tgUser.photo_url || null
                     };
-                    // Referral check
                     const startParam = tg.initDataUnsafe.start_param;
                     if(startParam && startParam.startsWith('ref_')) {
                         newUser.referredBy = startParam.substring(4);
-                        // Increment referrer count logic here...
                     }
                     await db.collection('users').doc(userId).set(newUser);
                 }
@@ -716,3 +709,4 @@
     </script>
 </body>
 </html>
+
