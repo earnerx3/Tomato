@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tomato Premium 🍅</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Premium Dark Theme Colors */
+            --bg-color: #050505;
+            --accent-color: #FF4B2B; /* Vibrant Tomato Red */
+            --accent-gradient: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            --glass-bg: rgba(30, 30, 30, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --success: #00b894;
+            --gold: #FFD700;
+            --silver: #C0C0C0;
+            --bronze: #CD7F32;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 75, 43, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 65, 108, 0.1) 0%, transparent 40%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 90px; /* Space for bottom nav */
+        }
+
+        /* --- Header --- */
+        .premium-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-color);
+            padding: 2px;
+            background: transparent;
+        }
+
+        .header-info {
+            line-height: 1.2;
+        }
+
+        .header-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-level {
+            font-size: 11px;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .header-balance {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            border: 1px solid var(--glass-border);
+        }
+
+        .balance-val {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .balance-sub {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* --- Container & Pages --- */
+        .container {
+            padding: 80px 16px 20px 16px; 
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .page {
+            display: none;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .page.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Premium Cards --- */
+        .glass-card {
+            background: var(--glass-bg);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
+        }
+        .glass-card:hover::before { left: 100%; }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        /* --- Stats Grid --- */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 18px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-val {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* --- Daily Check-in --- */
+        .daily-checkin {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        .day-circle {
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: bold;
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+        }
+        .day-circle.active {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(255, 75, 43, 0.4);
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.3);
+        }
+
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.6; filter: grayscale(1); }
+        .btn-glass { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); border: 1px solid var(--glass-border); }
+        
+        /* --- Task List --- */
+        .task-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03); padding: 14px;
+            border-radius: 16px; margin-bottom: 10px; border: 1px solid var(--glass-border);
+        }
+        .task-icon-box {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; margin-right: 12px;
+        }
+        .task-info h4 { font-size: 14px; margin-bottom: 3px; }
+        .task-info p { font-size: 11px; color: var(--accent-color); font-weight: 600; }
+        .task-btn-sm {
+            padding: 8px 16px; font-size: 12px; border-radius: 20px;
+            background: var(--text-primary); color: black; border: none; font-weight: 600;
+        }
+
+        /* --- Form Inputs --- */
+        .form-group { margin-bottom: 15px; }
+        .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; display: block; }
+        .form-input {
+            width: 100%; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border); padding: 14px; border-radius: 14px;
+            color: white; font-size: 14px; outline: none;
+        }
+        .form-input:focus { border-color: var(--accent-color); }
+
+        /* --- Leaderboard Styles --- */
+        .leaderboard-list {
+            list-style: none;
+        }
+        .leaderboard-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.03); padding: 12px;
+            border-radius: 16px; margin-bottom: 8px;
+            border: 1px solid var(--glass-border);
+        }
+        
+        /* Premium Ranks */
+        .leaderboard-item.rank-1 { border: 1px solid var(--gold); background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .leaderboard-item.rank-2 { border: 1px solid var(--silver); background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent); }
+        .leaderboard-item.rank-3 { border: 1px solid var(--bronze); background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent); }
+
+        .rank-num { width: 30px; font-weight: 700; color: var(--text-secondary); }
+        .rank-1 .rank-num { color: var(--gold); font-size: 18px; }
+        .rank-2 .rank-num { color: var(--silver); font-size: 16px; }
+        .rank-3 .rank-num { color: var(--bronze); font-size: 16px; }
+
+        .user-cell { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .user-cell img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+        .user-name-l { font-size: 13px; font-weight: 500; }
+        .user-score { font-weight: 700; color: var(--accent-color); font-size: 13px; }
+
+        /* --- Sticky User Rank Bar --- */
+        .sticky-rank-bar {
+            position: fixed;
+            bottom: 85px; /* Just above bottom nav */
+            left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 15px;
+            border: 1px solid var(--accent-color);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+            z-index: 90;
+            display: none; /* Hidden by default */
+        }
+        .sticky-rank-bar.active { display: flex; }
+
+        /* --- Floating Bottom Navigation --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 400px;
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            display: flex; justify-content: space-between;
+            padding: 12px 5px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            z-index: 999;
+        }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #666; transition: 0.3s; position: relative;
+            padding: 0 6px; flex: 1;
+        }
+
+        .nav-item svg { width: 22px; height: 22px; margin-bottom: 4px; }
+        .nav-item span { font-size: 9px; font-weight: 500; }
+
+        .nav-item.active { color: var(--accent-color); }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: -5px;
+            width: 4px; height: 4px; background: var(--accent-color);
+            border-radius: 50%; box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        /* --- Alerts & Modals --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-box {
+            background: #151515; border: 1px solid var(--glass-border); padding: 30px;
+            border-radius: 24px; width: 85%; max-width: 320px;
+            text-align: center; transform: scale(0.9); opacity: 0; transition: 0.3s;
+        }
+        .modal-box.show { transform: scale(1); opacity: 1; }
+        .modal-icon { font-size: 40px; margin-bottom: 15px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="premium-header">
+        <div class="header-user">
+            <img id="headerAvatar" src="https://placehold.co/100x100/1a1a1a/FF4B2B?text=U" alt="Profile" class="header-avatar">
+            <div class="header-info">
+                <div class="header-name" id="headerName">Loading...</div>
+                <div class="header-level" id="headerLevel">NOVICE</div>
+            </div>
+        </div>
+        <div class="header-balance">
+            <div class="balance-val" id="headerBalance">0</div>
+            <div class="balance-sub">Points</div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div id="homePage" class="page active">
+            <div class="glass-card">
+                <div class="card-title"><span>📅 Daily Check-in</span></div>
+                <div class="daily-checkin" id="dailyCheckinList">
+                    <div class="day-circle active">1</div>
+                    <div class="day-circle">2</div>
+                    <div class="day-circle">3</div>
+                    <div class="day-circle">4</div>
+                    <div class="day-circle">5</div>
+                    <div class="day-circle">6</div>
+                    <div class="day-circle">🎁</div>
+                </div>
+                <p class="card-desc" style="margin-top:15px; text-align:center; margin-bottom:0;">Login daily to earn bonus rewards!</p>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-label">Daily Ads</div>
+                    <div class="stat-val" id="statsDailyAds">0/0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Earnings</div>
+                    <div class="stat-val" id="statsTotalEarn">0</div>
+                </div>
+            </div>
+            
+            <div class="stats-row">
+                 <div class="stat-box">
+                    <div class="stat-label">Refers</div>
+                    <div class="stat-val" id="statsRefers">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Views</div>
+                    <div class="stat-val" id="statsTotalViews">0</div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="background: linear-gradient(145deg, rgba(255, 75, 43, 0.1), rgba(0,0,0,0)); border-color: var(--accent-color);">
+                <div class="card-title" style="justify-content:center;">🚀 Start Earning</div>
+                <p class="card-desc" style="text-align:center;">Watch ads and complete tasks to level up.</p>
+                <button class="btn btn-primary" onclick="navigateToPage('adsPage')">Go to Tasks</button>
+            </div>
+        </div>
+
+        <div id="adsPage" class="page">
+             <div class="glass-card">
+                 <div class="card-title">📺 Watch & Earn</div>
+                 <p class="card-desc">Don't close ads early (min 10s)!</p>
+                 
+                 <div class="task-row">
+                     <div style="display:flex; align-items:center;">
+                         <div class="task-icon-box">⚡</div>
+                         <div class="task-info">
+                             <h4>Standard Ad</h4>
+                             <p>+<span id="adPointsStd">0</span> Points</p>
+                         </div>
+                     </div>
+                     <button class="task-btn-sm" id="btnStandardAd">Watch</button>
+                 </div>
+
+                 <div class="task-row">
+                     <div style="display:flex; align-items:center;">
+                         <div class="task-icon-box" style="background:rgba(255, 75, 43, 0.2); color:var(--accent-color);">💎</div>
+                         <div class="task-info">
+                             <h4>Bonus Ad</h4>
+                             <p>+<span id="adPointsBonus">0</span> Points</p>
+                         </div>
+                     </div>
+                     <button class="task-btn-sm" id="btnBonusAd" style="background:var(--accent-gradient); color:white;">Claim</button>
+                 </div>
+             </div>
+
+             <div class="glass-card">
+                 <div class="card-title">📝 Extra Tasks</div>
+                 <div id="dynamicTasksList"></div>
+             </div>
+        </div>
+
+        <div id="leaderboardPage" class="page">
+            <div class="glass-card" style="text-align:center; padding-bottom:10px;">
+                <div style="font-size:40px; margin-bottom:10px;">🏆</div>
+                <div class="card-title" style="justify-content:center;">Top Earners</div>
+                <p class="card-desc">Compete to reach the top 3!</p>
+            </div>
+            
+            <ul class="leaderboard-list" id="leaderboardList">
+                <li style="text-align:center; color:#666;">Loading ranking...</li>
+            </ul>
+        </div>
+
+        <div id="withdrawPage" class="page">
+            <div class="glass-card" style="text-align: center;">
+                <div style="font-size: 12px; color: var(--text-secondary);">Available Balance</div>
+                <div style="font-size: 32px; font-weight: 700; color: white; margin: 10px 0;">
+                    <span id="withdrawBalanceDisplay">0</span>
+                </div>
+                <div style="font-size: 12px; color: var(--success);">~ $<span id="withdrawUsdDisplay">0.00</span></div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-title">Request Payout</div>
+                
+                <div class="form-group">
+                    <label class="form-label">Select Method</label>
+                    <select id="withdrawMethod" class="form-input" style="appearance: none;">
+                        <option>Loading...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" id="withdrawAddress" class="form-input" placeholder="017xxxxxxxx">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" id="withdrawAmountInput" class="form-input" placeholder="Min 5000">
+                </div>
+
+                <button class="btn btn-primary" id="btnSubmitWithdraw">Submit Request</button>
+            </div>
+            
+            <div class="glass-card">
+                <div class="card-title">History</div>
+                <ul id="withdrawHistory" style="list-style:none; padding-left:0;">
+                    <li style="text-align:center; color:#666; font-size:12px;">Loading...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="profilePage" class="page">
+            <div class="glass-card" style="text-align: center;">
+                <img id="profilePageAvatar" src="" class="header-avatar" style="width:80px; height:80px; margin-bottom:10px;">
+                <h2 id="profilePageName" style="color:white; margin-bottom:5px;">User</h2>
+                <div class="header-level" id="profilePageLevel" style="background: rgba(255,255,255,0.1); display:inline-block; padding:4px 10px; border-radius:10px;">NOVICE</div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-title">🤝 Invite Friends</div>
+                <p class="card-desc">Earn <span id="referRateText">10%</span> from your friends.</p>
+                
+                <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; font-family: monospace; color: var(--accent-color); word-break: break-all; margin-bottom: 10px;" id="referLinkBox">
+                    Loading link...
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" id="btnCopyRef">Copy</button>
+                    <button class="btn btn-glass" id="btnShareRef">Share</button>
+                </div>
+            </div>
+            
+             <div class="glass-card">
+                <div class="card-title">📞 Support</div>
+                <div id="supportList"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="sticky-rank-bar" id="stickyRankBar">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="background:var(--accent-color); width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:12px; color:white;" id="stickyMyRank">#</div>
+            <img id="stickyMyImg" src="" style="width:24px; height:24px; border-radius:50%;">
+            <span style="font-size:13px; font-weight:600;">You</span>
+        </div>
+        <div style="color:var(--accent-color); font-weight:700; font-size:13px;" id="stickyMyScore">0 Pts</div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="navigateToPage('homePage')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('adsPage')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z"/></svg>
+            <span>Tasks</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('leaderboardPage')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4h2v4zm4-7h-2v11h2V10zm-8 4H6v7h2v-7z"/></svg>
+            <span>Top</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('withdrawPage')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            <span>Wallet</span>
+        </div>
+        <div class="nav-item" onclick="navigateToPage('profilePage')">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <span>Profile</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-box" id="modalContent">
+            <div class="modal-icon" id="modalIcon">🎉</div>
+            <h3 id="modalTitle" style="color:white; margin-bottom:10px;">Success</h3>
+            <p id="modalMsg" style="color:var(--text-secondary); margin-bottom:20px; font-size:13px;">Operation completed.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Awesome</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#050505');
+        tg.setBackgroundColor('#050505');
+
+        // *** CONFIGURATION ***
+        const BOT_USERNAME = "Taka_GorBD_Bot"; 
+        const SHORT_NAME = "app"; 
+        
+        // *** FIREBASE CONFIG ***
+        const firebaseConfig = {
+            apiKey: "AIzaSyAolXMVYn7nLGUz4krYCHHgkBgkBRH4Djk",
+            authDomain: "earnerx-506e1.firebaseapp.com",
+            databaseURL: "https://earnerx-506e1-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "earnerx-506e1",
+            storageBucket: "earnerx-506e1.firebasestorage.app",
+            messagingSenderId: "868867404959",
+            appId: "1:868867404959:web:c98447df696a9877bf5eaa"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let appConfig = null;
+
+        // *** CACHING HELPERS ***
+        function setWithExpiry(key, value, ttlSeconds) {
+            const now = new Date();
+            const item = {
+                value: value,
+                expiry: now.getTime() + (ttlSeconds * 1000)
+            }
+            localStorage.setItem(key, JSON.stringify(item));
+        }
+
+        function getWithExpiry(key) {
+            const itemStr = localStorage.getItem(key);
+            if (!itemStr) return null;
+            
+            try {
+                const item = JSON.parse(itemStr);
+                const now = new Date();
+                if (now.getTime() > item.expiry) {
+                    localStorage.removeItem(key);
+                    return null;
+                }
+                return item.value;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getLevel(points) {
+            if (points > 50000) return "LEGEND";
+            if (points > 20000) return "MASTER";
+            if (points > 5000) return "PRO";
+            return "NOVICE";
+        }
+
+        function formatPoints(num) {
+            return num.toLocaleString();
+        }
+
+        function showModal(title, msg, icon = '🎉') {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMsg').innerText = msg;
+            document.getElementById('modalIcon').innerText = icon;
+            const modal = document.getElementById('customModal');
+            const box = document.getElementById('modalContent');
+            modal.style.display = 'flex';
+            setTimeout(() => box.classList.add('show'), 10);
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('customModal');
+            const box = document.getElementById('modalContent');
+            box.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300);
+        }
+
+        function navigateToPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            // Handle specific page loads
+            const sticky = document.getElementById('stickyRankBar');
+            if(pageId === 'leaderboardPage') {
+                sticky.classList.add('active');
+                loadLeaderboard();
+            } else {
+                sticky.classList.remove('active');
+            }
+
+            // Load history only when wallet page is opened
+            if(pageId === 'withdrawPage') {
+                loadWithdrawHistory();
+            }
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if(item.getAttribute('onclick').includes(pageId)) {
+                    item.classList.add('active');
+                }
+            });
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        async function fetchConfig() {
+            // Check cache first (1 Hour = 3600 seconds)
+            const cachedConfig = getWithExpiry('app_config');
+            if(cachedConfig) {
+                appConfig = cachedConfig;
+                if(appConfig.monetagZoneId) loadMonetag(appConfig.monetagZoneId);
+                updateUI();
+                return;
+            }
+
+            // Fetch from Firestore if no cache
+            const doc = await db.collection('config').doc('appConfig').get();
+            if(doc.exists) {
+                appConfig = doc.data();
+                setWithExpiry('app_config', appConfig, 3600); // Save to cache for 1 hour
+                if(appConfig.monetagZoneId) loadMonetag(appConfig.monetagZoneId);
+                updateUI();
+            }
+        }
+
+        function loadMonetag(zoneId) {
+             const script = document.createElement('script');
+             script.src = '//libtl.com/sdk.js';
+             script.dataset.zone = zoneId;
+             script.dataset.sdk = `show_${zoneId}`;
+             document.head.appendChild(script);
+        }
+
+        function showAd(type = 'default') {
+            return new Promise((resolve, reject) => {
+                if(!appConfig?.monetagZoneId) return reject("No Ad Config");
+                const func = window[`show_${appConfig.monetagZoneId}`];
+                if(func) {
+                    const p = type === 'pop' ? func('pop') : func();
+                    p.then(resolve).catch(reject);
+                } else {
+                    reject("Ad SDK not ready");
+                }
+            });
+        }
+
+        function updateUI() {
+            if(!currentUser || !appConfig) return;
+            
+            const fullName = `${currentUser.first_name} ${currentUser.last_name || ''}`.trim();
+            const level = getLevel(currentUser.balance);
+            
+            document.getElementById('headerName').innerText = fullName.substring(0, 15);
+            document.getElementById('headerLevel').innerText = level;
+            document.getElementById('headerBalance').innerText = formatPoints(currentUser.balance);
+            document.getElementById('headerAvatar').src = currentUser.photo_url || "https://placehold.co/100x100/1a1a1a/FF4B2B?text=U";
+            
+            document.getElementById('profilePageName').innerText = fullName;
+            document.getElementById('profilePageLevel').innerText = level;
+            document.getElementById('profilePageAvatar').src = currentUser.photo_url || "https://placehold.co/100x100/1a1a1a/FF4B2B?text=U";
+
+            document.getElementById('statsDailyAds').innerText = `${currentUser.dailyTasksCompleted || 0}/${appConfig.dailyTaskLimit || 10}`;
+            document.getElementById('statsTotalEarn').innerText = formatPoints(currentUser.totalEarnings || 0);
+            document.getElementById('statsRefers').innerText = currentUser.referredUsersCount || 0;
+            document.getElementById('statsTotalViews').innerText = currentUser.totalTasksCompleted || 0;
+
+            document.getElementById('adPointsStd').innerText = appConfig.standardAdPoints || 10;
+            document.getElementById('adPointsBonus').innerText = appConfig.bonusAdPoints || 20;
+            
+            document.getElementById('withdrawBalanceDisplay').innerText = formatPoints(currentUser.balance);
+            const rate = appConfig.dollarExchangeRate || 1000;
+            document.getElementById('withdrawUsdDisplay').innerText = (currentUser.balance / rate).toFixed(2);
+            
+            // Update Sticky Bar Self Info
+            document.getElementById('stickyMyImg').src = currentUser.photo_url || "https://placehold.co/100x100/1a1a1a/FF4B2B?text=U";
+            document.getElementById('stickyMyScore').innerText = formatPoints(currentUser.balance) + " Pts";
+
+            renderMethods();
+            // renderHistory();  <-- REMOVED: Now called only on navigation
+            renderDynamicTasks();
+            renderSupport();
+            
+            const link = `https://t.me/${BOT_USERNAME}/${SHORT_NAME}?startapp=ref_${currentUser.userId}`;
+            document.getElementById('referLinkBox').innerText = link;
+            document.getElementById('referRateText').innerText = (appConfig.referralBonus > 0) ? `${appConfig.referralBonus} Pts` : `${appConfig.referralPercentage || 10}%`;
+        }
+        
+        // --- Leaderboard Logic with Caching ---
+        async function loadLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            let leaderboardData = [];
+            
+            // Check Local Storage Cache (15 Minutes = 900 seconds)
+            const cachedLB = getWithExpiry('leaderboard_data');
+
+            if (cachedLB) {
+                leaderboardData = cachedLB;
+            } else {
+                // Fetch from Firebase if cache expired
+                try {
+                    const snap = await db.collection('users').orderBy('balance', 'desc').limit(50).get();
+                    snap.forEach(doc => {
+                        leaderboardData.push(doc.data());
+                    });
+                    // Save to Cache
+                    setWithExpiry('leaderboard_data', leaderboardData, 900);
+                } catch(e) {
+                    list.innerHTML = '<li style="text-align:center;color:red;">Failed to load</li>';
+                    return;
+                }
+            }
+
+            // Render Leaderboard
+            list.innerHTML = '';
+            let myRank = "100+";
+            let rank = 1;
+            
+            leaderboardData.forEach(u => {
+                const isMe = u.userId === currentUser.userId;
+                if(isMe) myRank = rank;
+                
+                const name = u.first_name + (u.last_name ? ' '+u.last_name : '');
+                const avatar = u.photo_url || "https://placehold.co/100x100/1a1a1a/FF4B2B?text=U";
+                const score = formatPoints(u.balance);
+                
+                const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+                
+                list.innerHTML += `
+                <li class="leaderboard-item ${rankClass}">
+                    <div class="user-cell">
+                        <span class="rank-num">${rank}</span>
+                        <img src="${avatar}">
+                        <div class="user-name-l">${name} ${isMe ? '(You)' : ''}</div>
+                    </div>
+                    <div class="user-score">${score}</div>
+                </li>`;
+                rank++;
+            });
+
+            // Update my sticky rank
+            document.getElementById('stickyMyRank').innerText = myRank;
+        }
+
+        // --- Standard Lists ---
+        function renderMethods() {
+            const sel = document.getElementById('withdrawMethod');
+            if(sel.options.length > 1) return; // Prevent re-rendering if already populated
+            sel.innerHTML = '';
+            appConfig.paymentMethods?.forEach(m => {
+                sel.innerHTML += `<option value="${m.id}">${m.name} (Min: ${m.minAmount})</option>`;
+            });
+        }
+
+        // --- History Logic with Caching ---
+        async function loadWithdrawHistory() {
+            const list = document.getElementById('withdrawHistory');
+            const cacheKey = `withdraw_history_${currentUser.userId}`;
+            
+            // Check Cache (5 Minutes = 300 seconds)
+            const cachedHistory = getWithExpiry(cacheKey);
+
+            let historyData = [];
+
+            if(cachedHistory) {
+                historyData = cachedHistory;
+            } else {
+                try {
+                    const snap = await db.collection('withdrawals').where('userId', '==', currentUser.userId).orderBy('createdAt', 'desc').limit(5).get();
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        // Convert Firestore Timestamp to safe string/number for JSON storage
+                        historyData.push({
+                            paymentMethodName: d.paymentMethodName,
+                            amount: d.amount,
+                            status: d.status
+                        });
+                    });
+                    setWithExpiry(cacheKey, historyData, 300);
+                } catch(e) {
+                    list.innerHTML = '<li style="text-align:center; color:#666; font-size:12px;">Failed to load history.</li>';
+                    return;
+                }
+            }
+
+            // Render
+            list.innerHTML = '';
+            if(historyData.length === 0) { 
+                list.innerHTML = '<li style="text-align:center; color:#666; font-size:12px;">No history yet.</li>'; 
+                return; 
+            }
+            
+            historyData.forEach(d => {
+                let color = '#fdcb6e';
+                if(d.status === 'Approved') color = '#00b894';
+                if(d.status === 'Rejected') color = '#ff7675';
+                
+                list.innerHTML += `
+                <li style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:5px;">
+                    <div>
+                        <div style="font-size:13px; color:white;">${d.paymentMethodName}</div>
+                        <div style="font-size:10px; color:#888;">${formatPoints(d.amount)} Pts</div>
+                    </div>
+                    <div style="font-size:11px; font-weight:bold; color:${color}; align-self:center;">${d.status}</div>
+                </li>`;
+            });
+        }
+
+        function renderDynamicTasks() {
+            const div = document.getElementById('dynamicTasksList');
+            div.innerHTML = '';
+            appConfig.dynamicTasks?.forEach(task => {
+                const today = new Date().toDateString();
+                const isDone = (currentUser.completedTasks?.[task.id] === today) || (task.type === 'one-time' && currentUser.completedTasks?.[task.id] === 'completed');
+                
+                div.innerHTML += `
+                 <div class="task-row">
+                     <div style="display:flex; align-items:center;">
+                         <div class="task-icon-box" style="background:#222; color:white;">🔗</div>
+                         <div class="task-info">
+                             <h4>${task.name}</h4>
+                             <p>+${task.points} Pts</p>
+                         </div>
+                     </div>
+                     <button class="task-btn-sm" onclick="doTask('${task.id}')" ${isDone ? 'disabled style="opacity:0.5"' : ''}>
+                        ${isDone ? 'Done' : 'Start'}
+                     </button>
+                 </div>`;
+            });
+        }
+        
+        function renderSupport() {
+             const div = document.getElementById('supportList');
+             if(div.innerHTML !== "") return; // Avoid re-render
+             div.innerHTML = '';
+             appConfig.supportLinks?.forEach(l => {
+                 div.innerHTML += `
+                 <div class="task-row" onclick="window.open('${l.link}')">
+                     <div style="display:flex; align-items:center;">
+                         <div class="task-icon-box">💬</div>
+                         <h4>${l.name}</h4>
+                     </div>
+                     <span style="font-size:12px; color:var(--text-secondary);">Open ></span>
+                 </div>`;
+             });
+        }
+
+        // --- Actions with Anti-Cheat ---
+        
+        document.getElementById('btnStandardAd').onclick = async function() {
+            if(currentUser.dailyTasksCompleted >= appConfig.dailyTaskLimit) return showModal('Limit', 'Daily limit reached!', '🛑');
+            
+            const btn = this;
+            btn.innerText = 'Watching...';
+            btn.disabled = true;
+
+            const startTime = Date.now(); // Start Timer
+
+            try {
+                await showAd('default');
+                
+                // Anti-Cheat Check: Duration less than 10 seconds?
+                const duration = Date.now() - startTime;
+                if(duration < 10000) { // 10000 ms = 10 seconds
+                    showModal('Failed', 'You closed the ad too early! Minimum 15s required.', '⚠️');
+                    btn.innerText = 'Watch';
+                    btn.disabled = false;
+                    return; // Stop here, no reward
+                }
+
+                await rewardUser(appConfig.standardAdPoints, true);
+                btn.innerText = 'Watch';
+                btn.disabled = false;
+            } catch(e) {
+                console.log(e);
+                showModal('Error', 'Ad failed to load or closed instantly.', '❌');
+                btn.innerText = 'Watch';
+                btn.disabled = false;
+            }
+        };
+
+        document.getElementById('btnBonusAd').onclick = async function() {
+            if(currentUser.dailyTasksCompleted >= appConfig.dailyTaskLimit) return showModal('Limit', 'Daily limit reached!', '🛑');
+             this.innerText = '...';
+             // Pop ads usually don't have duration check easily, keeping standard
+            try {
+                await showAd('pop');
+                await rewardUser(appConfig.bonusAdPoints, true);
+            } catch(e) {
+                showModal('Error', 'Bonus ad unavailable.', '❌');
+            }
+             this.innerText = 'Claim';
+        };
+
+        async function rewardUser(points, isAd = false) {
+             const ref = db.collection('users').doc(currentUser.userId);
+             await db.runTransaction(async (t) => {
+                 const doc = await t.get(ref);
+                 const data = doc.data();
+                 let update = {
+                     balance: data.balance + points,
+                     totalEarnings: data.totalEarnings + points
+                 };
+                 if(isAd) {
+                     update.dailyTasksCompleted = (data.dailyTasksCompleted || 0) + 1;
+                     update.totalTasksCompleted = (data.totalTasksCompleted || 0) + 1;
+                 }
+                 if(data.referredBy && appConfig.referralPercentage > 0) {
+                     const comm = Math.floor(points * (appConfig.referralPercentage / 100));
+                     if(comm > 0) {
+                         const refUser = db.collection('users').doc(data.referredBy);
+                         t.update(refUser, { 
+                             balance: firebase.firestore.FieldValue.increment(comm),
+                             referralEarnings: firebase.firestore.FieldValue.increment(comm)
+                         });
+                     }
+                 }
+                 t.update(ref, update);
+             });
+             showModal('Awesome!', `You earned +${points} Points`, '💰');
+        }
+
+        window.doTask = function(taskId) {
+            const task = appConfig.dynamicTasks.find(t => t.id === taskId);
+            if(!task) return;
+            tg.openLink(task.link);
+            showModal('Wait...', `Stay there for ${task.timer || 10} seconds`, '⏳');
+            setTimeout(async () => {
+                const ref = db.collection('users').doc(currentUser.userId);
+                const today = new Date().toDateString();
+                await ref.update({
+                    balance: firebase.firestore.FieldValue.increment(task.points),
+                    [`completedTasks.${taskId}`]: task.type === 'one-time' ? 'completed' : today
+                });
+                showModal('Done', `Task Reward: ${task.points}`, '✅');
+            }, (task.timer || 10) * 1000);
+        };
+        
+        document.getElementById('btnSubmitWithdraw').onclick = async function() {
+            const amt = parseInt(document.getElementById('withdrawAmountInput').value);
+            const addr = document.getElementById('withdrawAddress').value;
+            const methodId = document.getElementById('withdrawMethod').value;
+            
+            if(!amt || !addr) return showModal('Error', 'Fill all fields', '⚠️');
+            if(amt > currentUser.balance) return showModal('Error', 'Insufficient Balance', '💸');
+            
+            const method = appConfig.paymentMethods.find(m => m.id === methodId);
+            if(amt < method.minAmount) return showModal('Error', `Min withdraw is ${method.minAmount}`, '📉');
+
+            try {
+                await db.runTransaction(async (t) => {
+                     const ref = db.collection('users').doc(currentUser.userId);
+                     const doc = await t.get(ref);
+                     if(doc.data().balance < amt) throw "Low Balance";
+                     
+                     t.update(ref, { balance: firebase.firestore.FieldValue.increment(-amt) });
+                     const wRef = db.collection('withdrawals').doc();
+                     t.set(wRef, {
+                         userId: currentUser.userId,
+                         amount: amt,
+                         paymentAddress: addr,
+                         paymentMethodName: method.name,
+                         status: 'Pending',
+                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                     });
+                });
+                // Invalidate history cache so new withdrawal shows up immediately next time wallet is opened
+                localStorage.removeItem(`withdraw_history_${currentUser.userId}`);
+                showModal('Success', 'Withdrawal requested!', '✅');
+                document.getElementById('withdrawAmountInput').value = '';
+                loadWithdrawHistory(); // Reload immediately to show new status
+            } catch(e) {
+                showModal('Error', 'Transaction failed', '❌');
+            }
+        };
+        
+        document.getElementById('btnCopyRef').onclick = function() {
+            const txt = document.getElementById('referLinkBox').innerText;
+            navigator.clipboard.writeText(txt);
+            showModal('Copied', 'Link copied to clipboard', '📋');
+        };
+        
+        document.getElementById('btnShareRef').onclick = function() {
+             const txt = document.getElementById('referLinkBox').innerText;
+             tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(txt)}&text=Join Now`);
+        };
+
+        // --- INIT ---
+        const tgUser = tg.initDataUnsafe.user;
+        if(tgUser) {
+            const userId = String(tgUser.id);
+            db.collection('users').doc(userId).onSnapshot(doc => {
+                if(doc.exists) {
+                    currentUser = doc.data();
+                    if(currentUser.lastTaskDate !== new Date().toDateString()) {
+                        db.collection('users').doc(userId).update({
+                            dailyTasksCompleted: 0,
+                            lastTaskDate: new Date().toDateString()
+                        });
+                    }
+                    updateUI(); // Snapshot listener only updates UI stats
+                } else {
+                    const newUser = {
+                        userId: userId,
+                        first_name: tgUser.first_name,
+                        last_name: tgUser.last_name || '',
+                        username: tgUser.username || '',
+                        photo_url: tgUser.photo_url || '',
+                        balance: 0,
+                        totalEarnings: 0,
+                        dailyTasksCompleted: 0,
+                        lastTaskDate: new Date().toDateString(),
+                        referredUsersCount: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    const startParam = tg.initDataUnsafe.start_param;
+                    if(startParam && startParam.startsWith('ref_')) {
+                        newUser.referredBy = startParam.split('_')[1];
+                        if(newUser.referredBy !== userId) {
+                            db.collection('users').doc(newUser.referredBy).update({
+                                referredUsersCount: firebase.firestore.FieldValue.increment(1)
+                            });
+                        }
+                    }
+                    db.collection('users').doc(userId).set(newUser);
+                }
+            });
+            fetchConfig();
+        } else {
+            document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:50px;'>Open in Telegram</h2>";
+        }
+
+    </script>
+</body>
+</html>
